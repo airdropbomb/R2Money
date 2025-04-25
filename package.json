@@ -23,9 +23,9 @@
     "author": "Airdrop Insiders",
     "license": "MIT",
     "bugs": {
-      "url": "https://github.com/airdropinsiders/R2Money-Auto-Bot/issues"
+      "url": "https://github.com/airdropbomb/R2Money.git/issues"
     },
-    "homepage": "https://github.com/airdropinsiders/R2Money-Auto-Bot#readme",
+    "homepage": "https://github.com/airdropbomb/R2Money.git#readme",
     "dependencies": {
       "dotenv": "^16.3.1",
       "ethers": "^5.7.2",
