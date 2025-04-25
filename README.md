@@ -22,8 +22,7 @@ An automated bot for interacting with the R2 Money protocol on the Sepolia testn
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/airdropinsiders/R2Money-Auto-Bot.git
-cd R2Money-Auto-Bot
+git clone https://github.com/airdropbomb/R2Money.git && cd R2Money
 ```
 
 2. Install dependencies:
