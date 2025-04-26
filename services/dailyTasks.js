@@ -2,6 +2,11 @@ const { swapUSDCtoR2USD, swapR2USDtoUSDC } = require('./swap');
 const { stakeR2USD } = require('./stake');
 const { EMOJI, colorText, COLORS } = require('../utils/colors');
 
+// Delay function to wait for a specified time (in milliseconds)
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 let dailyTasks = {
   usdcToR2usd: { enabled: false, amount: 0, numTxs: 0 },
   r2usdToUsdc: { enabled: false, amount: 0, numTxs: 0 },
@@ -29,17 +34,42 @@ async function executeDailyTask(wallet, taskType, amount, numTxs) {
   for (let i = 1; i <= numTxs; i++) {
     console.log(`${EMOJI.LOADING} ${colorText(`Transaction ${i} of ${numTxs} (Amount: ${amount})`, COLORS.YELLOW)}`);
     let success = false;
-    if (taskType === 'USDC to R2USD') {
-      success = await swapUSDCtoR2USD(wallet, amount);
-    } else if (taskType === 'R2USD to USDC') {
-      success = await swapR2USDtoUSDC(wallet, amount);
-    } else if (taskType === 'Stake R2USD') {
-      success = await stakeR2USD(wallet, amount);
+    let retries = 3; // Maximum 3 retries
+
+    // Retry loop
+    while (retries > 0 && !success) {
+      try {
+        if (taskType === 'USDC to R2USD') {
+          success = await swapUSDCtoR2USD(wallet, amount);
+        } else if (taskType === 'R2USD to USDC') {
+          success = await swapR2USDtoUSDC(wallet, amount);
+        } else if (taskType === 'Stake R2USD') {
+          success = await stakeR2USD(wallet, amount);
+        }
+
+        if (success) {
+          console.log(`${EMOJI.SUCCESS} ${colorText(`Transaction ${i} completed successfully!`, COLORS.GREEN)}`);
+        } else {
+          throw new Error('Transaction failed');
+        }
+      } catch (error) {
+        retries--;
+        console.error(`${EMOJI.ERROR} ${colorText(`Transaction ${i} failed: ${error.message}. ${retries} retries left.`, COLORS.RED)}`);
+        if (retries > 0) {
+          console.log(`${EMOJI.CLOCK} ${colorText(`Waiting 10 seconds before retrying...`, COLORS.CYAN)}`);
+          await delay(10000); // 10-second delay before retry
+        }
+      }
     }
-    if (success) {
-      console.log(`${EMOJI.SUCCESS} ${colorText(`Transaction ${i} completed successfully!`, COLORS.GREEN)}`);
-    } else {
-      console.error(`${EMOJI.ERROR} ${colorText(`Transaction ${i} failed.`, COLORS.RED)}`);
+
+    if (!success) {
+      console.error(`${EMOJI.ERROR} ${colorText(`Transaction ${i} failed after all retries. Moving to next transaction.`, COLORS.RED)}`);
+    }
+
+    // Add 30-second delay between transactions (except for the last one)
+    if (i < numTxs) {
+      console.log(`${EMOJI.CLOCK} ${colorText(`Waiting 30 seconds before next transaction...`, COLORS.CYAN)}`);
+      await delay(30000); // 30-second delay
     }
   }
   console.log(`${EMOJI.SUCCESS} ${colorText(`Completed ${numTxs} ${taskType} transaction(s) for wallet ${wallet.address}.`, COLORS.GREEN)}`);
