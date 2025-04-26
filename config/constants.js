@@ -2,7 +2,7 @@ const NETWORKS = {
   sepolia: {
     name: 'Sepolia',
     chainId: 11155111,
-    rpcUrl: 'https://1rpc.io/sepolia',
+    rpcUrl: 'wss://sepolia.drpc.org',
     explorer: 'https://sepolia.etherscan.io',
     symbol: 'ETH',
     contracts: {
