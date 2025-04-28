@@ -32,17 +32,17 @@ async function approveToken(wallet, tokenAddress, spenderAddress, amount) {
     const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, wallet);
     const decimals = await tokenContract.decimals();
     const currentAllowance = await tokenContract.allowance(wallet.address, spenderAddress);
-    if (currentAllowance.gte(ethers.utils.parseUnits(amount.toString(), decimals))) {
+    const amountInWei = ethers.utils.parseUnits(amount.toString(), decimals);
+    if (currentAllowance.gte(amountInWei)) {
       console.log(`${EMOJI.INFO} ${colorText('Sufficient allowance already exists', COLORS.GRAY)}`);
       return true;
     }
-    console.log(`${EMOJI.LOADING} ${colorText(`Approving ${amount} tokens for spending...`, COLORS.YELLOW)}`);
-    const amountInWei = ethers.utils.parseUnits(amount.toString(), decimals);
-    const tx = await tokenContract.approve(spenderAddress, amountInWei, { gasLimit: 100000 });
+    console.log(`${EMOJI.LOADING} ${colorText(`Approving unlimited tokens for ${spenderAddress}...`, COLORS.YELLOW)}`);
+    const tx = await tokenContract.approve(spenderAddress, ethers.constants.MaxUint256, { gasLimit: 100000 });
     console.log(`${EMOJI.INFO} ${colorText(`Approval transaction sent: ${tx.hash}`, COLORS.WHITE)}`);
     console.log(`${EMOJI.INFO} ${colorText(`Check on explorer: ${NETWORKS[wallet.networkKey].explorer}/tx/${tx.hash}`, COLORS.GRAY)}`);
     await tx.wait();
-    console.log(`${EMOJI.SUCCESS} ${colorText('Approval confirmed', COLORS.GREEN)}`);
+    console.log(`${EMOJI.SUCCESS} ${colorText('Unlimited approval confirmed', COLORS.GREEN)}`);
     return true;
   } catch (error) {
     console.error(`${EMOJI.ERROR} ${colorText('Failed to approve token:', COLORS.RED)}`, error);
