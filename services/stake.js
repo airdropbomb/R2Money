@@ -16,21 +16,14 @@ async function stakeR2USD(wallet, amount) {
       console.error(`${EMOJI.ERROR} ${colorText(`Insufficient R2USD balance. You have ${r2usdBalance} R2USD but trying to stake ${amount} R2USD.`, COLORS.RED)}`);
       return false;
     }
+    const approved = await approveToken(wallet, contracts.R2USD_ADDRESS, contracts.STAKE_R2USD_CONTRACT, amount);
+    if (!approved) {
+      console.error(`${EMOJI.ERROR} ${colorText('Failed to approve R2USD for staking contract', COLORS.RED)}`);
+      return false;
+    }
     const r2usdContract = new ethers.Contract(contracts.R2USD_ADDRESS, ERC20_ABI, wallet);
     const decimals = await r2usdContract.decimals();
     const amountInWei = ethers.utils.parseUnits(amount.toString(), decimals);
-    const currentAllowance = await r2usdContract.allowance(wallet.address, contracts.STAKE_R2USD_CONTRACT);
-    console.log(`${EMOJI.INFO} ${colorText(`Current R2USD allowance for staking contract: ${ethers.utils.formatUnits(currentAllowance, decimals)}`, COLORS.GRAY)}`);
-    if (currentAllowance.lt(amountInWei)) {
-      console.log(`${EMOJI.LOADING} ${colorText(`Approving ${amount} R2USD for staking contract...`, COLORS.YELLOW)}`);
-      const approveTx = await r2usdContract.approve(contracts.STAKE_R2USD_CONTRACT, amountInWei, { gasLimit: 100000 });
-      console.log(`${EMOJI.INFO} ${colorText(`Approval transaction sent: ${approveTx.hash}`, COLORS.WHITE)}`);
-      console.log(`${EMOJI.INFO} ${colorText(`Check on explorer: ${NETWORKS[wallet.networkKey].explorer}/tx/${approveTx.hash}`, COLORS.GRAY)}`);
-      await approveTx.wait();
-      console.log(`${EMOJI.SUCCESS} ${colorText('Approval confirmed', COLORS.GREEN)}`);
-    } else {
-      console.log(`${EMOJI.INFO} ${colorText('Sufficient allowance already exists', COLORS.GRAY)}`);
-    }
     const data = contracts.STAKE_R2USD_METHOD_ID +
                  amountInWei.toHexString().slice(2).padStart(64, '0') +
                  '0'.repeat(576);
